@@ -1,3 +1,33 @@
+// ========================================
+// MODE CONFIGURATION
+// ========================================
+// Set to 'DEV' to skip/speed up animations for development
+// Set to 'PROD' for full experience
+const MODE = 'DEV'; // Change to 'DEV' for faster development
+
+// Animation timings based on mode
+const TIMINGS = MODE === 'DEV' ? {
+  crtDuration: 0.3,        // CRT animation (seconds)
+  crtDelay: 300,           // When CRT overlay removes (ms)
+  terminalDelay: 0.2,      // Terminal fade-in delay (seconds)
+  typingStart: 400,        // When typing starts (ms)
+  typingSpeed: 2,          // Characters per keystroke (ms)
+  lineDelay: 50,           // Delay between lines (ms)
+  replDelay: 100           // Delay before REPL starts (ms)
+} : {
+  crtDuration: 1.2,        // CRT animation (seconds)
+  crtDelay: 600,           // When CRT overlay removes (ms)
+  terminalDelay: 1.0,      // Terminal fade-in delay (seconds)
+  typingStart: 1050,       // When typing starts (ms)
+  typingSpeed: 10,         // Characters per keystroke (ms)
+  lineDelay: 200,          // Delay between lines (ms)
+  replDelay: 500           // Delay before REPL starts (ms)
+};
+
+// Set CSS variables based on mode
+document.documentElement.style.setProperty('--crt-duration', `${TIMINGS.crtDuration}s`);
+document.documentElement.style.setProperty('--terminal-delay', `${TIMINGS.terminalDelay}s`);
+
 const lines = [
   "Initializing system...",
   "Establishing secure connection...",
@@ -27,13 +57,13 @@ class Type {
       if (this.char < this.lines[this.line].length) {
         this.cursor.insertAdjacentText("beforebegin", this.lines[this.line][this.char]);
         this.char++;
-        setTimeout(() => this.type(), 10 + Math.random() * 10);
+        setTimeout(() => this.type(), TIMINGS.typingSpeed + Math.random() * TIMINGS.typingSpeed);
       } else {
         // Finished a line
         this.cursor.insertAdjacentHTML("beforebegin", "<br>");
         this.line++;
         this.char = 0;
-        setTimeout(() => this.type(), 200);
+        setTimeout(() => this.type(), TIMINGS.lineDelay);
       }
     } else {
       this.typing = false;
@@ -159,15 +189,15 @@ class REPL {
 setTimeout(() => {
   const overlay = document.getElementById("crtOverlay");
   overlay.classList.add("complete");
-}, 600);
+}, TIMINGS.crtDelay);
 
 // Create REPL instance
 const repl = new REPL(terminal, cursor);
 
 // Create typer with callback to start REPL when done
 const typer = new Type(lines, cursor, () => {
-  setTimeout(() => repl.start(), 500);
+  setTimeout(() => repl.start(), TIMINGS.replDelay);
 });
 
 // Start typing when terminal is visible
-setTimeout(() => typer.type(), 1050);
+setTimeout(() => typer.type(), TIMINGS.typingStart);
