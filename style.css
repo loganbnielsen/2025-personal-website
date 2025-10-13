@@ -20,10 +20,24 @@ body {
 
 .cursor {
   display: inline-block;
-  width: 10px;
+  width: 12px;
+  height: 1.2em;
   background-color: #00ff66;
   margin-left: 2px;
-  animation: blink 1s infinite;
+  box-shadow: 0 0 5px #00ff66;
+  vertical-align: text-bottom;
+  opacity: 0; /* Hidden by default */
+}
+
+/* Show and blink cursor when active */
+.cursor.active {
+  animation: blink 1.2s infinite; /* Change 1.2s to adjust blink speed (lower = faster) */
+}
+
+/* Solid cursor while typing */
+.cursor.active.typing-active {
+  animation: none;
+  opacity: 1;
 }
 
 @keyframes blink {

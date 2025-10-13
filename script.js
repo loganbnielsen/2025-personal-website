@@ -39,7 +39,7 @@ const lines = [
 
 const terminal = document.getElementById("terminal");
 const cursor = document.createElement("span");
-cursor.classList.add("cursor");
+cursor.classList.add("cursor"); // Hidden by default during typing
 terminal.appendChild(cursor);
 
 class Type {
@@ -80,10 +80,13 @@ class REPL {
     this.active = false;
     this.inputField = null;
     this.inputStartPos = null;
+    this.typingTimer = null;
   }
 
   start() {
     this.active = true;
+    // Show and start blinking the cursor
+    this.cursor.classList.add("active");
     this.showPrompt();
     this.setupInput();
   }
@@ -115,6 +118,19 @@ class REPL {
     this.inputField.addEventListener("input", (e) => {
       this.currentInput = e.target.value;
       this.updateDisplay();
+      
+      // Make cursor solid while typing
+      this.cursor.classList.add("typing-active");
+      
+      // Clear previous timer
+      if (this.typingTimer) {
+        clearTimeout(this.typingTimer);
+      }
+      
+      // Resume blinking after 500ms of inactivity
+      this.typingTimer = setTimeout(() => {
+        this.cursor.classList.remove("typing-active");
+      }, 500);
     });
 
     // Listen for Enter key
@@ -124,6 +140,12 @@ class REPL {
         this.processCommand(this.currentInput);
         this.currentInput = "";
         this.inputField.value = "";
+        
+        // Clear typing timer and resume blinking
+        if (this.typingTimer) {
+          clearTimeout(this.typingTimer);
+        }
+        this.cursor.classList.remove("typing-active");
       }
     });
   }
@@ -155,7 +177,7 @@ class REPL {
     let response = "";
     switch (trimmedCmd) {
       case "help":
-        response = "Available commands:<br>  help - Show this message<br> start - Begin, commence, or embark 😄<br>  clear - Clear the terminal<br>  date - Show current date";
+        response = "Available commands:<br>  help - Show this message<br>  start - Begin, commence, or embark 😄<br>  clear - Clear the terminal<br>  date - Show current date";
         break;
       case "start":
         response = "I'm Logan Nielsen, welcome to my website!";
