@@ -248,7 +248,7 @@ class REPL {
           this.currentInput = "";
           this.inputField.value = "";
           // Scroll to top after clear
-          window.scrollTo(0, 0);
+          terminal.scrollTop = 0;
           this.inputField.focus();
           return;
         case "date":
@@ -260,7 +260,7 @@ class REPL {
           this.currentInput = "";
           this.inputField.value = "";
           // Scroll to bottom
-          window.scrollTo(0, document.body.scrollHeight);
+          terminal.scrollTop = terminal.scrollHeight;
           this.inputField.focus();
           return;
         default:
@@ -281,7 +281,7 @@ class REPL {
     this.inputField.value = "";
     
     // Scroll to bottom to keep input line visible
-    window.scrollTo(0, document.body.scrollHeight);
+    terminal.scrollTop = terminal.scrollHeight;
     
     this.inputField.focus();
   }
