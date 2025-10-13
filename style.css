@@ -1,0 +1,124 @@
+body {
+  background-color: #000;
+  color: #00ff66;
+  font-family: "Courier New", monospace;
+  padding: 2rem;
+  font-size: 1.2rem;
+  text-shadow: 0 0 5px #00ff66;
+  overflow: hidden;
+  animation: flicker 0.15s infinite;
+}
+
+.cursor {
+  display: inline-block;
+  width: 10px;
+  background-color: #00ff66;
+  margin-left: 2px;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+@keyframes flicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+    opacity: 1;
+  }
+  20%, 24%, 55% {
+    opacity: 0.98;
+  }
+}
+
+/* CRT Turn-On Animation */
+.crt-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.crt-power-on {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  box-shadow: 0 0 40px #fff, 0 0 80px #00ff66, 0 0 120px #00ff66;
+  transform: scaleY(0.002);
+  transform-origin: center;
+  opacity: 0;
+  animation: crt-turn-on 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes crt-turn-on {
+  0% {
+    opacity: 1;
+    transform: scaleY(0.002);
+    filter: brightness(3);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scaleY(1);
+    filter: brightness(1.5);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleY(1);
+    filter: brightness(0.8);
+  }
+}
+
+/* Scanline overlay for authenticity */
+.crt-scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    transparent 0,
+    transparent 2px,
+    rgba(0, 255, 102, 0.03) 3px
+  );
+  opacity: 0;
+  animation: scanlines-fade 1.2s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes scanlines-fade {
+  0%, 60% {
+    opacity: 0;
+  }
+  75% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Hide overlay after animation */
+.crt-overlay.complete {
+  animation: fade-out 0.1s ease-out forwards;
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+#terminal {
+  opacity: 0;
+  animation: content-fade-in 0.3s ease-in forwards;
+  animation-delay: 1.0s;
+}
+
+@keyframes content-fade-in {
+  to {
+    opacity: 1;
+  }
+}
+
