@@ -85,14 +85,13 @@ class REPL {
 
   start() {
     this.active = true;
-    // Show and start blinking the cursor
     this.cursor.classList.add("active");
     this.showPrompt();
     this.setupInput();
   }
 
   showPrompt() {
-    this.cursor.insertAdjacentHTML("beforebegin", "<br>> ");
+    this.cursor.insertAdjacentHTML("beforebegin", "<br><br>> ");
     this.inputStartPos = this.terminal.childNodes.length - 1;
   }
 
