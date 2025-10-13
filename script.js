@@ -28,6 +28,23 @@ const TIMINGS = MODE === 'DEV' ? {
 document.documentElement.style.setProperty('--crt-duration', `${TIMINGS.crtDuration}s`);
 document.documentElement.style.setProperty('--terminal-delay', `${TIMINGS.terminalDelay}s`);
 
+// Load saved theme preference
+const savedTheme = localStorage.getItem('terminal-theme');
+if (savedTheme) {
+  const themes = {
+    green: { primary: '#00ff66', glow: '#00ff66' },
+    amber: { primary: '#ffb000', glow: '#ffb000' },
+    blue: { primary: '#00d4ff', glow: '#00d4ff' },
+    matrix: { primary: '#00ff00', glow: '#00ff00' }
+  };
+  
+  if (themes[savedTheme]) {
+    const theme = themes[savedTheme];
+    document.documentElement.style.setProperty('--primary-color', theme.primary);
+    document.documentElement.style.setProperty('--glow-color', theme.glow);
+  }
+}
+
 const lines = [
   "Initializing system...",
   "Establishing secure connection...",
@@ -38,31 +55,40 @@ const lines = [
 ];
 
 const terminal = document.getElementById("terminal");
-const cursor = document.createElement("span");
-cursor.classList.add("cursor"); // Hidden by default during typing
-terminal.appendChild(cursor);
+const output = document.getElementById("output");
+const inputLine = document.getElementById("input-line");
+const prompt = document.getElementById("prompt");
+const inputText = document.getElementById("input-text");
+const cursor = document.querySelector(".cursor");
+
+// Hide prompt and input line initially (shown after typing animation)
+inputLine.style.display = "none";
 
 class Type {
-  constructor(lines, cursor, onComplete) {
+  constructor(lines, output, onComplete) {
     this.lines = lines;
-    this.cursor = cursor;
+    this.output = output;
     this.onComplete = onComplete;
     this.line = 0;
     this.char = 0;
     this.typing = true;
+    this.currentLineText = document.createTextNode("");
+    this.output.appendChild(this.currentLineText);
   }
 
   type() {
     if (this.line < this.lines.length) {
       if (this.char < this.lines[this.line].length) {
-        this.cursor.insertAdjacentText("beforebegin", this.lines[this.line][this.char]);
+        this.currentLineText.textContent += this.lines[this.line][this.char];
         this.char++;
         setTimeout(() => this.type(), TIMINGS.typingSpeed + Math.random() * TIMINGS.typingSpeed);
       } else {
         // Finished a line
-        this.cursor.insertAdjacentHTML("beforebegin", "<br>");
+        this.output.appendChild(document.createElement("br"));
         this.line++;
         this.char = 0;
+        this.currentLineText = document.createTextNode("");
+        this.output.appendChild(this.currentLineText);
         setTimeout(() => this.type(), TIMINGS.lineDelay);
       }
     } else {
@@ -73,26 +99,27 @@ class Type {
 }
 
 class REPL {
-  constructor(terminal, cursor) {
-    this.terminal = terminal;
+  constructor(output, inputText, cursor) {
+    this.output = output;
+    this.inputText = inputText;
     this.cursor = cursor;
     this.currentInput = "";
     this.active = false;
     this.inputField = null;
-    this.inputStartPos = null;
     this.typingTimer = null;
+    this.commandHistory = [];
+    this.historyIndex = -1;
   }
 
   start() {
     this.active = true;
     this.cursor.classList.add("active");
-    this.showPrompt();
+    // Add spacing before input line
+    this.output.appendChild(document.createElement("br"));
+    this.output.appendChild(document.createElement("br"));
+    // Show the input line
+    inputLine.style.display = "flex";
     this.setupInput();
-  }
-
-  showPrompt() {
-    this.cursor.insertAdjacentHTML("beforebegin", "<br><br>> ");
-    this.inputStartPos = this.terminal.childNodes.length - 1;
   }
 
   setupInput() {
@@ -132,7 +159,7 @@ class REPL {
       }, 500);
     });
 
-    // Listen for Enter key
+    // Listen for Enter and arrow keys
     this.inputField.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
@@ -145,64 +172,140 @@ class REPL {
           clearTimeout(this.typingTimer);
         }
         this.cursor.classList.remove("typing-active");
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        this.navigateHistory(-1);
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        this.navigateHistory(1);
       }
     });
   }
 
-  updateDisplay() {
-    // Remove old input display
-    const nodesToRemove = [];
-    let node = this.cursor.previousSibling;
-    
-    while (node && node.textContent !== "> ") {
-      nodesToRemove.unshift(node);
-      node = node.previousSibling;
-    }
-    
-    nodesToRemove.forEach(n => n.remove());
+  navigateHistory(direction) {
+    if (this.commandHistory.length === 0) return;
 
-    // Add current input
-    if (this.currentInput) {
-      this.cursor.insertAdjacentText("beforebegin", this.currentInput);
+    // Update history index
+    this.historyIndex += direction;
+    
+    // Clamp to valid range (-1 means no history selected, use empty string)
+    if (this.historyIndex < -1) {
+      this.historyIndex = -1;
+    } else if (this.historyIndex >= this.commandHistory.length) {
+      this.historyIndex = this.commandHistory.length - 1;
     }
+
+    // Update input field with history item (or empty if at -1)
+    if (this.historyIndex === -1) {
+      this.currentInput = "";
+      this.inputField.value = "";
+    } else {
+      this.currentInput = this.commandHistory[this.historyIndex];
+      this.inputField.value = this.currentInput;
+    }
+    
+    this.updateDisplay();
+  }
+
+  updateDisplay() {
+    // Simply update the input text span
+    this.inputText.textContent = this.currentInput;
   }
 
   processCommand(cmd) {
     const trimmedCmd = cmd.trim().toLowerCase();
     
-    // Remove the current input from display
-    this.cursor.insertAdjacentHTML("beforebegin", "<br>");
+    // Save to history (don't save empty commands or duplicates of last command)
+    if (trimmedCmd && (this.commandHistory.length === 0 || this.commandHistory[this.commandHistory.length - 1] !== trimmedCmd)) {
+      this.commandHistory.push(trimmedCmd);
+    }
+    // Reset history index
+    this.historyIndex = this.commandHistory.length;
+
+    // Add the command to output (what user typed)
+    const commandLine = document.createElement('div');
+    commandLine.textContent = '> ' + cmd;
+    this.output.appendChild(commandLine);
 
     let response = "";
-    switch (trimmedCmd) {
-      case "help":
-        response = "Available commands:<br>  help - Show this message<br>  start - Begin, commence, or embark 😄<br>  clear - Clear the terminal<br>  date - Show current date";
-        break;
-      case "start":
-        response = "I'm Logan Nielsen, welcome to my website!";
-        break;
-      case "clear":
-        // Clear everything except cursor
-        while (this.terminal.firstChild !== this.cursor) {
-          this.terminal.removeChild(this.terminal.firstChild);
-        }
-        this.showPrompt();
-        this.inputField.focus();
-        return;
-      case "date":
-        response = new Date().toString();
-        break;
-      case "":
-        this.showPrompt();
-        this.inputField.focus();
-        return;
-      default:
-        response = `Command not found: ${cmd}<br>Type 'help' for available commands.`;
+    
+    // Handle theme command
+    if (trimmedCmd.startsWith("theme ")) {
+      const themeName = trimmedCmd.substring(6).trim();
+      response = this.changeTheme(themeName);
+    } else {
+      switch (trimmedCmd) {
+        case "help":
+          response = "Available commands:<br>  help - Show this message<br>  start - Begin, commence, or embark 😄<br>  clear - Clear the terminal<br>  date - Show current date<br>  theme [green|amber|blue|matrix] - Change color theme";
+          break;
+        case "start":
+          response = "I'm Logan Nielsen, welcome to my website!";
+          break;
+        case "clear":
+          // Clear the output
+          this.output.innerHTML = "";
+          this.inputText.textContent = "";
+          this.currentInput = "";
+          this.inputField.value = "";
+          // Scroll to top after clear
+          window.scrollTo(0, 0);
+          this.inputField.focus();
+          return;
+        case "date":
+          response = new Date().toString();
+          break;
+        case "":
+          // Empty command, just clear input
+          this.inputText.textContent = "";
+          this.currentInput = "";
+          this.inputField.value = "";
+          // Scroll to bottom
+          window.scrollTo(0, document.body.scrollHeight);
+          this.inputField.focus();
+          return;
+        default:
+          response = `Command not found: ${cmd}<br>Type 'help' for available commands.`;
+      }
     }
 
-    this.cursor.insertAdjacentHTML("beforebegin", response);
-    this.showPrompt();
+    // Add response to output if there is one
+    if (response) {
+      const responseLine = document.createElement('div');
+      responseLine.innerHTML = response;
+      this.output.appendChild(responseLine);
+    }
+
+    // Clear the input text
+    this.inputText.textContent = "";
+    this.currentInput = "";
+    this.inputField.value = "";
+    
+    // Scroll to bottom to keep input line visible
+    window.scrollTo(0, document.body.scrollHeight);
+    
     this.inputField.focus();
+  }
+
+  changeTheme(themeName) {
+    const themes = {
+      green: { primary: '#00ff66', glow: '#00ff66', name: 'Classic Green' },
+      amber: { primary: '#ffb000', glow: '#ffb000', name: 'Retro Amber' },
+      blue: { primary: '#00d4ff', glow: '#00d4ff', name: 'IBM Blue' },
+      matrix: { primary: '#00ff00', glow: '#00ff00', name: 'Matrix Green' }
+    };
+
+    if (themes[themeName]) {
+      const theme = themes[themeName];
+      document.documentElement.style.setProperty('--primary-color', theme.primary);
+      document.documentElement.style.setProperty('--glow-color', theme.glow);
+      
+      // Save theme preference
+      localStorage.setItem('terminal-theme', themeName);
+      
+      return `Theme changed to: ${theme.name}`;
+    } else {
+      return `Unknown theme: ${themeName}<br>Available themes: green, amber, blue, matrix`;
+    }
   }
 }
 
@@ -213,10 +316,10 @@ setTimeout(() => {
 }, TIMINGS.crtDelay);
 
 // Create REPL instance
-const repl = new REPL(terminal, cursor);
+const repl = new REPL(output, inputText, cursor);
 
 // Create typer with callback to start REPL when done
-const typer = new Type(lines, cursor, () => {
+const typer = new Type(lines, output, () => {
   setTimeout(() => repl.start(), TIMINGS.replDelay);
 });
 
