@@ -236,7 +236,12 @@ class REPL {
     } else {
       switch (trimmedCmd) {
         case "help":
-          response = "Available commands:<br>  help - Show this message<br>  start - Begin, commence, or embark 😄<br>  clear - Clear the terminal<br>  date - Show current date<br>  theme [green|amber|blue|matrix] - Change color theme";
+          response = "Available commands:<br>  help - Show this message<br>  about - Learn about me<br>  start - Begin, commence, or embark 😄<br>  clear - Clear the terminal<br>  date - Show current date<br>  theme [green|amber|blue|matrix] - Change color theme";
+          break;
+        case "about":
+          response = "Loading about screen...";
+          // Trigger the about screen animation
+          setTimeout(() => this.showAboutScreen(), 500);
           break;
         case "start":
           response = "I'm Logan Nielsen, welcome to my website!";
@@ -286,6 +291,34 @@ class REPL {
     this.inputField.focus();
   }
 
+  showAboutScreen() {
+    const crtMonitor = document.querySelector('.crt-monitor');
+    const aboutScreen = document.getElementById('aboutScreen');
+    
+    // Slide out terminal
+    crtMonitor.classList.add('slide-out');
+    
+    // Slide in about screen after a brief delay
+    setTimeout(() => {
+      aboutScreen.classList.add('show');
+    }, 400);
+  }
+
+  hideAboutScreen() {
+    const crtMonitor = document.querySelector('.crt-monitor');
+    const aboutScreen = document.getElementById('aboutScreen');
+    
+    // Slide out about screen
+    aboutScreen.classList.remove('show');
+    
+    // Slide in terminal after a brief delay
+    setTimeout(() => {
+      crtMonitor.classList.remove('slide-out');
+      // Refocus the input
+      if (this.inputField) this.inputField.focus();
+    }, 400);
+  }
+
   changeTheme(themeName) {
     const themes = {
       green: { primary: '#00ff66', glow: '#00ff66', name: 'Classic Green' },
@@ -325,3 +358,8 @@ const typer = new Type(lines, output, () => {
 
 // Start typing when terminal is visible
 setTimeout(() => typer.type(), TIMINGS.typingStart);
+
+// Set up back button on about screen
+document.getElementById('backButton').addEventListener('click', () => {
+  repl.hideAboutScreen();
+});

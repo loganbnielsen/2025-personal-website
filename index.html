@@ -13,12 +13,51 @@
     <div class="crt-scanlines"></div>
   </div>
 
-  <div id="terminal">
-    <div id="output"></div>
-    <div id="input-line">
-      <span id="prompt">> </span>
-      <span id="input-text"></span>
-      <span class="cursor"></span>
+  <!-- CRT Monitor Frame -->
+  <div class="crt-monitor">
+    <div id="terminal">
+      <div id="output"></div>
+      <div id="input-line">
+        <span id="prompt">> </span>
+        <span id="input-text"></span>
+        <span class="cursor"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- About Screen (hidden by default) -->
+  <div class="about-screen" id="aboutScreen">
+    <div class="pixel-character">
+      <div class="char-container">
+        <!-- Simple pixel art character -->
+        <div class="pixel-row">
+          <span></span><span class="p"></span><span class="p"></span><span class="p"></span><span></span>
+        </div>
+        <div class="pixel-row">
+          <span class="p"></span><span class="p"></span><span class="p"></span><span class="p"></span><span class="p"></span>
+        </div>
+        <div class="pixel-row">
+          <span class="p"></span><span class="e"></span><span class="p"></span><span class="e"></span><span class="p"></span>
+        </div>
+        <div class="pixel-row">
+          <span class="p"></span><span class="p"></span><span class="p"></span><span class="p"></span><span class="p"></span>
+        </div>
+        <div class="pixel-row">
+          <span class="p"></span><span class="m"></span><span class="m"></span><span class="m"></span><span class="p"></span>
+        </div>
+        <div class="pixel-row">
+          <span></span><span class="p"></span><span></span><span class="p"></span><span></span>
+        </div>
+      </div>
+    </div>
+    <div class="about-text">
+      <h1>LOGAN NIELSEN</h1>
+      <p>Developer • Creator • Terminal Enthusiast</p>
+      <br>
+      <p>I build things that live in terminals.</p>
+      <p>Welcome to my retro-styled corner of the web!</p>
+      <br>
+      <button id="backButton" class="pixel-button">[ BACK TO TERMINAL ]</button>
     </div>
   </div>
 
