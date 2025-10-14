@@ -7,14 +7,14 @@ body {
   background-color: #000;
   color: var(--primary-color);
   font-family: "Courier New", monospace;
-  margin: 0;
-  padding: 0;
+  padding: 2rem;
   font-size: 1.2rem;
   text-shadow: 0 0 5px var(--glow-color);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   /* animation: flicker 0.15s infinite; */ /* Disabled for performance */
   cursor: text;
-  height: 100vh;
+  min-height: 100vh;
 }
 
 /* Hidden input field for capturing keyboard input */
@@ -149,11 +149,6 @@ body {
   word-wrap: break-word;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 2rem;
-  box-sizing: border-box;
 }
 
 #output {
