@@ -81,6 +81,8 @@ class Type {
       if (this.char < this.lines[this.line].length) {
         this.currentLineText.textContent += this.lines[this.line][this.char];
         this.char++;
+        // Auto-scroll as we type
+        terminal.scrollTop = terminal.scrollHeight;
         setTimeout(() => this.type(), TIMINGS.typingSpeed + Math.random() * TIMINGS.typingSpeed);
       } else {
         // Finished a line
@@ -89,6 +91,8 @@ class Type {
         this.char = 0;
         this.currentLineText = document.createTextNode("");
         this.output.appendChild(this.currentLineText);
+        // Auto-scroll between lines
+        terminal.scrollTop = terminal.scrollHeight;
         setTimeout(() => this.type(), TIMINGS.lineDelay);
       }
     } else {
@@ -120,6 +124,13 @@ class REPL {
     // Show the input line
     inputLine.style.display = "flex";
     this.setupInput();
+    // Scroll to bottom
+    this.scrollToBottom();
+  }
+
+  scrollToBottom() {
+    // Scroll the terminal element to the bottom
+    terminal.scrollTop = terminal.scrollHeight;
   }
 
   setupInput() {
@@ -241,7 +252,7 @@ class REPL {
         case "about":
           response = "Loading about screen...";
           // Trigger the about screen animation
-          setTimeout(() => this.showAboutScreen(), 500);
+          setTimeout(() => this.showAboutScreen(), 100);
           break;
         case "start":
           response = "I'm Logan Nielsen, welcome to my website!";
@@ -253,7 +264,7 @@ class REPL {
           this.currentInput = "";
           this.inputField.value = "";
           // Scroll to top after clear
-          window.scrollTo(0, 0);
+          terminal.scrollTop = 0;
           this.inputField.focus();
           return;
         case "date":
@@ -265,7 +276,7 @@ class REPL {
           this.currentInput = "";
           this.inputField.value = "";
           // Scroll to bottom
-          window.scrollTo(0, document.body.scrollHeight);
+          this.scrollToBottom();
           this.inputField.focus();
           return;
         default:
@@ -286,7 +297,7 @@ class REPL {
     this.inputField.value = "";
     
     // Scroll to bottom to keep input line visible
-    window.scrollTo(0, document.body.scrollHeight);
+    this.scrollToBottom();
     
     this.inputField.focus();
   }
@@ -295,28 +306,23 @@ class REPL {
     const crtMonitor = document.querySelector('.crt-monitor');
     const aboutScreen = document.getElementById('aboutScreen');
     
-    // Slide out terminal
+    // Slide out terminal and slide in about screen simultaneously
     crtMonitor.classList.add('slide-out');
-    
-    // Slide in about screen after a brief delay
-    setTimeout(() => {
-      aboutScreen.classList.add('show');
-    }, 400);
+    aboutScreen.classList.add('show');
   }
 
   hideAboutScreen() {
     const crtMonitor = document.querySelector('.crt-monitor');
     const aboutScreen = document.getElementById('aboutScreen');
     
-    // Slide out about screen
+    // Slide out about screen and slide in terminal simultaneously
     aboutScreen.classList.remove('show');
+    crtMonitor.classList.remove('slide-out');
     
-    // Slide in terminal after a brief delay
+    // Refocus the input after a brief moment for the animation
     setTimeout(() => {
-      crtMonitor.classList.remove('slide-out');
-      // Refocus the input
       if (this.inputField) this.inputField.focus();
-    }, 400);
+    }, 100);
   }
 
   changeTheme(themeName) {

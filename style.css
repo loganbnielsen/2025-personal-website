@@ -33,7 +33,7 @@ body {
     0 0 60px rgba(0, 0, 0, 0.8),
     inset 0 0 20px rgba(0, 0, 0, 0.5),
     0 20px 40px rgba(0, 0, 0, 0.4);
-  transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transition: transform 0.6s ease-in-out;
 }
 
 .crt-monitor.slide-out {
@@ -177,14 +177,13 @@ body {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overflow-x: hidden;
   background-color: #000;
   border-radius: 15px;
   box-shadow: 
     inset 0 0 100px rgba(0, 255, 0, 0.03),
     inset 0 0 20px rgba(0, 0, 0, 0.8);
-  /* Curved screen effect */
-  transform: perspective(1000px);
-  transform-style: preserve-3d;
+  scroll-behavior: smooth;
 }
 
 #terminal::before {
@@ -194,7 +193,6 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.3) 100%);
   border-radius: 15px;
   pointer-events: none;
   z-index: 1;
@@ -207,14 +205,6 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.02) 0%,
-      transparent 5%,
-      transparent 95%,
-      rgba(0, 0, 0, 0.1) 100%
-    );
   border-radius: 15px;
   pointer-events: none;
   z-index: 1;
@@ -275,7 +265,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 60px;
-  transition: right 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transition: right 0.6s ease-in-out;
   z-index: 10;
 }
 
