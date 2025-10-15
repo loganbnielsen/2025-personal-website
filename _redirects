@@ -1,0 +1,6 @@
+# Netlify redirects file
+# This tells Netlify to serve index.html for all routes
+# so that /about will work with client-side routing
+
+/*    /index.html   200
+

@@ -306,6 +306,9 @@ class REPL {
     const crtMonitor = document.querySelector('.crt-monitor');
     const aboutScreen = document.getElementById('aboutScreen');
     
+    // Update URL without reloading - use proper route
+    history.pushState({ page: 'about' }, 'About', '/about');
+    
     // Slide out terminal and slide in about screen simultaneously
     crtMonitor.classList.add('slide-out');
     aboutScreen.classList.add('show');
@@ -315,14 +318,22 @@ class REPL {
     const crtMonitor = document.querySelector('.crt-monitor');
     const aboutScreen = document.getElementById('aboutScreen');
     
+    // Update URL back to home without reloading
+    history.pushState({ page: 'home' }, 'Terminal', '/');
+    
     // Slide out about screen and slide in terminal simultaneously
     aboutScreen.classList.remove('show');
     crtMonitor.classList.remove('slide-out');
     
-    // Refocus the input after a brief moment for the animation
-    setTimeout(() => {
-      if (this.inputField) this.inputField.focus();
-    }, 100);
+    // If REPL hasn't been started yet (direct link to /about), start it now
+    if (!this.active) {
+      setTimeout(() => this.start(), 500);
+    } else {
+      // Refocus the input after a brief moment for the animation
+      setTimeout(() => {
+        if (this.inputField) this.inputField.focus();
+      }, 100);
+    }
   }
 
   changeTheme(themeName) {
@@ -348,24 +359,72 @@ class REPL {
   }
 }
 
-// Remove CRT overlay when animation completes
-setTimeout(() => {
-  const overlay = document.getElementById("crtOverlay");
-  overlay.classList.add("complete");
-}, TIMINGS.crtDelay);
+// Check if we should skip directly to about page
+const isDirectAboutLink = window.location.pathname === '/about';
 
-// Create REPL instance
+// Create REPL instance (needed in both paths)
 const repl = new REPL(output, inputText, cursor);
 
-// Create typer with callback to start REPL when done
-const typer = new Type(lines, output, () => {
-  setTimeout(() => repl.start(), TIMINGS.replDelay);
-});
+if (isDirectAboutLink) {
+  // Skip all animations and go straight to about page
+  const overlay = document.getElementById("crtOverlay");
+  const crtMonitor = document.querySelector('.crt-monitor');
+  const aboutScreen = document.getElementById('aboutScreen');
+  
+  // Immediately hide CRT overlay
+  overlay.style.display = 'none';
+  
+  // Make terminal visible without animation
+  terminal.style.opacity = '1';
+  terminal.style.animation = 'none';
+  
+  // Show about screen immediately
+  crtMonitor.classList.add('slide-out');
+  aboutScreen.classList.add('show');
+  
+} else {
+  // Normal flow - show animations
+  
+  // Remove CRT overlay when animation completes
+  setTimeout(() => {
+    const overlay = document.getElementById("crtOverlay");
+    overlay.classList.add("complete");
+  }, TIMINGS.crtDelay);
 
-// Start typing when terminal is visible
-setTimeout(() => typer.type(), TIMINGS.typingStart);
+  // Create typer with callback to start REPL when done
+  const typer = new Type(lines, output, () => {
+    setTimeout(() => repl.start(), TIMINGS.replDelay);
+  });
 
-// Set up back button on about screen
+  // Start typing when terminal is visible
+  setTimeout(() => typer.type(), TIMINGS.typingStart);
+}
+
+// Set up back button on about screen (works for both paths)
 document.getElementById('backButton').addEventListener('click', () => {
   repl.hideAboutScreen();
+});
+
+// Handle browser back/forward buttons
+window.addEventListener('popstate', (event) => {
+  const crtMonitor = document.querySelector('.crt-monitor');
+  const aboutScreen = document.getElementById('aboutScreen');
+  
+  if (window.location.pathname === '/about') {
+    // Show about screen (without pushState to avoid loop)
+    crtMonitor.classList.add('slide-out');
+    aboutScreen.classList.add('show');
+  } else {
+    // Show terminal (without pushState to avoid loop)
+    aboutScreen.classList.remove('show');
+    crtMonitor.classList.remove('slide-out');
+    
+    // If REPL hasn't been started yet (direct link to /about), start it now
+    if (!repl.active) {
+      setTimeout(() => repl.start(), 500);
+    } else {
+      // Try to focus the input field if it exists
+      if (repl.inputField) repl.inputField.focus();
+    }
+  }
 });
