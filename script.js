@@ -3,45 +3,57 @@
 // ========================================
 // Set to 'DEV' to skip/speed up animations for development
 // Set to 'PROD' for full experience
-const MODE = 'DEV'; // Change to 'DEV' for faster development
+const MODE = "DEV"; // Change to 'DEV' for faster development
 
 // Animation timings based on mode
-const TIMINGS = MODE === 'DEV' ? {
-  crtDuration: 0.3,        // CRT animation (seconds)
-  crtDelay: 300,           // When CRT overlay removes (ms)
-  terminalDelay: 0.2,      // Terminal fade-in delay (seconds)
-  typingStart: 400,        // When typing starts (ms)
-  typingSpeed: 2,          // Characters per keystroke (ms)
-  lineDelay: 50,           // Delay between lines (ms)
-  replDelay: 100           // Delay before REPL starts (ms)
-} : {
-  crtDuration: 1.2,        // CRT animation (seconds)
-  crtDelay: 600,           // When CRT overlay removes (ms)
-  terminalDelay: 1.0,      // Terminal fade-in delay (seconds)
-  typingStart: 1050,       // When typing starts (ms)
-  typingSpeed: 10,         // Characters per keystroke (ms)
-  lineDelay: 200,          // Delay between lines (ms)
-  replDelay: 500           // Delay before REPL starts (ms)
-};
+const TIMINGS =
+  MODE === "DEV"
+    ? {
+        crtDuration: 0.3, // CRT animation (seconds)
+        crtDelay: 300, // When CRT overlay removes (ms)
+        terminalDelay: 0.2, // Terminal fade-in delay (seconds)
+        typingStart: 400, // When typing starts (ms)
+        typingSpeed: 2, // Characters per keystroke (ms)
+        lineDelay: 50, // Delay between lines (ms)
+        replDelay: 100, // Delay before REPL starts (ms)
+      }
+    : {
+        crtDuration: 1.2, // CRT animation (seconds)
+        crtDelay: 600, // When CRT overlay removes (ms)
+        terminalDelay: 1.0, // Terminal fade-in delay (seconds)
+        typingStart: 1050, // When typing starts (ms)
+        typingSpeed: 10, // Characters per keystroke (ms)
+        lineDelay: 200, // Delay between lines (ms)
+        replDelay: 500, // Delay before REPL starts (ms)
+      };
 
 // Set CSS variables based on mode
-document.documentElement.style.setProperty('--crt-duration', `${TIMINGS.crtDuration}s`);
-document.documentElement.style.setProperty('--terminal-delay', `${TIMINGS.terminalDelay}s`);
+document.documentElement.style.setProperty(
+  "--crt-duration",
+  `${TIMINGS.crtDuration}s`
+);
+document.documentElement.style.setProperty(
+  "--terminal-delay",
+  `${TIMINGS.terminalDelay}s`
+);
 
 // Load saved theme preference
-const savedTheme = localStorage.getItem('terminal-theme');
+const savedTheme = localStorage.getItem("terminal-theme");
 if (savedTheme) {
   const themes = {
-    green: { primary: '#00ff66', glow: '#00ff66' },
-    amber: { primary: '#ffb000', glow: '#ffb000' },
-    blue: { primary: '#00d4ff', glow: '#00d4ff' },
-    matrix: { primary: '#00ff00', glow: '#00ff00' }
+    green: { primary: "#00ff66", glow: "#00ff66" },
+    amber: { primary: "#ffb000", glow: "#ffb000" },
+    blue: { primary: "#00d4ff", glow: "#00d4ff" },
+    matrix: { primary: "#00ff00", glow: "#00ff00" },
   };
-  
+
   if (themes[savedTheme]) {
     const theme = themes[savedTheme];
-    document.documentElement.style.setProperty('--primary-color', theme.primary);
-    document.documentElement.style.setProperty('--glow-color', theme.glow);
+    document.documentElement.style.setProperty(
+      "--primary-color",
+      theme.primary
+    );
+    document.documentElement.style.setProperty("--glow-color", theme.glow);
   }
 }
 
@@ -83,7 +95,10 @@ class Type {
         this.char++;
         // Auto-scroll as we type
         terminal.scrollTop = terminal.scrollHeight;
-        setTimeout(() => this.type(), TIMINGS.typingSpeed + Math.random() * TIMINGS.typingSpeed);
+        setTimeout(
+          () => this.type(),
+          TIMINGS.typingSpeed + Math.random() * TIMINGS.typingSpeed
+        );
       } else {
         // Finished a line
         this.output.appendChild(document.createElement("br"));
@@ -142,7 +157,7 @@ class REPL {
     this.inputField.autocapitalize = "off";
     this.inputField.spellcheck = false;
     document.body.appendChild(this.inputField);
-    
+
     // Focus it immediately
     this.inputField.focus();
 
@@ -155,15 +170,15 @@ class REPL {
     this.inputField.addEventListener("input", (e) => {
       this.currentInput = e.target.value;
       this.updateDisplay();
-      
+
       // Make cursor solid while typing
       this.cursor.classList.add("typing-active");
-      
+
       // Clear previous timer
       if (this.typingTimer) {
         clearTimeout(this.typingTimer);
       }
-      
+
       // Resume blinking after 500ms of inactivity
       this.typingTimer = setTimeout(() => {
         this.cursor.classList.remove("typing-active");
@@ -177,7 +192,7 @@ class REPL {
         this.processCommand(this.currentInput);
         this.currentInput = "";
         this.inputField.value = "";
-        
+
         // Clear typing timer and resume blinking
         if (this.typingTimer) {
           clearTimeout(this.typingTimer);
@@ -198,7 +213,7 @@ class REPL {
 
     // Update history index
     this.historyIndex += direction;
-    
+
     // Clamp to valid range (-1 means no history selected, use empty string)
     if (this.historyIndex < -1) {
       this.historyIndex = -1;
@@ -214,7 +229,7 @@ class REPL {
       this.currentInput = this.commandHistory[this.historyIndex];
       this.inputField.value = this.currentInput;
     }
-    
+
     this.updateDisplay();
   }
 
@@ -225,21 +240,25 @@ class REPL {
 
   processCommand(cmd) {
     const trimmedCmd = cmd.trim().toLowerCase();
-    
+
     // Save to history (don't save empty commands or duplicates of last command)
-    if (trimmedCmd && (this.commandHistory.length === 0 || this.commandHistory[this.commandHistory.length - 1] !== trimmedCmd)) {
+    if (
+      trimmedCmd &&
+      (this.commandHistory.length === 0 ||
+        this.commandHistory[this.commandHistory.length - 1] !== trimmedCmd)
+    ) {
       this.commandHistory.push(trimmedCmd);
     }
     // Reset history index
     this.historyIndex = this.commandHistory.length;
 
     // Add the command to output (what user typed)
-    const commandLine = document.createElement('div');
-    commandLine.textContent = '> ' + cmd;
+    const commandLine = document.createElement("div");
+    commandLine.textContent = "> " + cmd;
     this.output.appendChild(commandLine);
 
     let response = "";
-    
+
     // Handle theme command
     if (trimmedCmd.startsWith("theme ")) {
       const themeName = trimmedCmd.substring(6).trim();
@@ -247,7 +266,8 @@ class REPL {
     } else {
       switch (trimmedCmd) {
         case "help":
-          response = "Available commands:<br>  help - Show this message<br>  about - Learn about me<br>  start - Begin, commence, or embark 😄<br>  clear - Clear the terminal<br>  date - Show current date<br>  theme [green|amber|blue|matrix] - Change color theme";
+          response =
+            "Available commands:<br>  help - Show this message<br>  about - Learn about me<br>  start - Begin, commence, or embark 😄<br>  clear - Clear the terminal<br>  date - Show current date<br>  theme [green|amber|blue|matrix] - Change color theme";
           break;
         case "about":
           response = "Loading about screen...";
@@ -286,7 +306,7 @@ class REPL {
 
     // Add response to output if there is one
     if (response) {
-      const responseLine = document.createElement('div');
+      const responseLine = document.createElement("div");
       responseLine.innerHTML = response;
       this.output.appendChild(responseLine);
     }
@@ -295,36 +315,36 @@ class REPL {
     this.inputText.textContent = "";
     this.currentInput = "";
     this.inputField.value = "";
-    
+
     // Scroll to bottom to keep input line visible
     this.scrollToBottom();
-    
+
     this.inputField.focus();
   }
 
   showAboutScreen() {
-    const crtMonitor = document.querySelector('.crt-monitor');
-    const aboutScreen = document.getElementById('aboutScreen');
-    
+    const crtMonitor = document.querySelector(".crt-monitor");
+    const aboutScreen = document.getElementById("aboutScreen");
+
     // Update URL without reloading - use proper route
-    history.pushState({ page: 'about' }, 'About', '/about');
-    
+    history.pushState({ page: "about" }, "About", "/about");
+
     // Slide out terminal and slide in about screen simultaneously
-    crtMonitor.classList.add('slide-out');
-    aboutScreen.classList.add('show');
+    crtMonitor.classList.add("slide-out");
+    aboutScreen.classList.add("show");
   }
 
   hideAboutScreen() {
-    const crtMonitor = document.querySelector('.crt-monitor');
-    const aboutScreen = document.getElementById('aboutScreen');
-    
+    const crtMonitor = document.querySelector(".crt-monitor");
+    const aboutScreen = document.getElementById("aboutScreen");
+
     // Update URL back to home without reloading
-    history.pushState({ page: 'home' }, 'Terminal', '/');
-    
+    history.pushState({ page: "home" }, "Terminal", "/");
+
     // Slide out about screen and slide in terminal simultaneously
-    aboutScreen.classList.remove('show');
-    crtMonitor.classList.remove('slide-out');
-    
+    aboutScreen.classList.remove("show");
+    crtMonitor.classList.remove("slide-out");
+
     // If REPL hasn't been started yet (direct link to /about), start it now
     if (!this.active) {
       setTimeout(() => this.start(), 500);
@@ -338,20 +358,23 @@ class REPL {
 
   changeTheme(themeName) {
     const themes = {
-      green: { primary: '#00ff66', glow: '#00ff66', name: 'Classic Green' },
-      amber: { primary: '#ffb000', glow: '#ffb000', name: 'Retro Amber' },
-      blue: { primary: '#00d4ff', glow: '#00d4ff', name: 'IBM Blue' },
-      matrix: { primary: '#00ff00', glow: '#00ff00', name: 'Matrix Green' }
+      green: { primary: "#00ff66", glow: "#00ff66", name: "Classic Green" },
+      amber: { primary: "#ffb000", glow: "#ffb000", name: "Retro Amber" },
+      blue: { primary: "#00d4ff", glow: "#00d4ff", name: "IBM Blue" },
+      matrix: { primary: "#00ff00", glow: "#00ff00", name: "Matrix Green" },
     };
 
     if (themes[themeName]) {
       const theme = themes[themeName];
-      document.documentElement.style.setProperty('--primary-color', theme.primary);
-      document.documentElement.style.setProperty('--glow-color', theme.glow);
-      
+      document.documentElement.style.setProperty(
+        "--primary-color",
+        theme.primary
+      );
+      document.documentElement.style.setProperty("--glow-color", theme.glow);
+
       // Save theme preference
-      localStorage.setItem('terminal-theme', themeName);
-      
+      localStorage.setItem("terminal-theme", themeName);
+
       return `Theme changed to: ${theme.name}`;
     } else {
       return `Unknown theme: ${themeName}<br>Available themes: green, amber, blue, matrix`;
@@ -360,7 +383,7 @@ class REPL {
 }
 
 // Check if we should skip directly to about page
-const isDirectAboutLink = window.location.pathname === '/about';
+const isDirectAboutLink = window.location.pathname === "/about";
 
 // Create REPL instance (needed in both paths)
 const repl = new REPL(output, inputText, cursor);
@@ -368,23 +391,22 @@ const repl = new REPL(output, inputText, cursor);
 if (isDirectAboutLink) {
   // Skip all animations and go straight to about page
   const overlay = document.getElementById("crtOverlay");
-  const crtMonitor = document.querySelector('.crt-monitor');
-  const aboutScreen = document.getElementById('aboutScreen');
-  
+  const crtMonitor = document.querySelector(".crt-monitor");
+  const aboutScreen = document.getElementById("aboutScreen");
+
   // Immediately hide CRT overlay
-  overlay.style.display = 'none';
-  
+  overlay.style.display = "none";
+
   // Make terminal visible without animation
-  terminal.style.opacity = '1';
-  terminal.style.animation = 'none';
-  
+  terminal.style.opacity = "1";
+  terminal.style.animation = "none";
+
   // Show about screen immediately
-  crtMonitor.classList.add('slide-out');
-  aboutScreen.classList.add('show');
-  
+  crtMonitor.classList.add("slide-out");
+  aboutScreen.classList.add("show");
 } else {
   // Normal flow - show animations
-  
+
   // Remove CRT overlay when animation completes
   setTimeout(() => {
     const overlay = document.getElementById("crtOverlay");
@@ -401,24 +423,24 @@ if (isDirectAboutLink) {
 }
 
 // Set up back button on about screen (works for both paths)
-document.getElementById('backButton').addEventListener('click', () => {
+document.getElementById("backButton").addEventListener("click", () => {
   repl.hideAboutScreen();
 });
 
 // Handle browser back/forward buttons
-window.addEventListener('popstate', (event) => {
-  const crtMonitor = document.querySelector('.crt-monitor');
-  const aboutScreen = document.getElementById('aboutScreen');
-  
-  if (window.location.pathname === '/about') {
+window.addEventListener("popstate", (event) => {
+  const crtMonitor = document.querySelector(".crt-monitor");
+  const aboutScreen = document.getElementById("aboutScreen");
+
+  if (window.location.pathname === "/about") {
     // Show about screen (without pushState to avoid loop)
-    crtMonitor.classList.add('slide-out');
-    aboutScreen.classList.add('show');
+    crtMonitor.classList.add("slide-out");
+    aboutScreen.classList.add("show");
   } else {
     // Show terminal (without pushState to avoid loop)
-    aboutScreen.classList.remove('show');
-    crtMonitor.classList.remove('slide-out');
-    
+    aboutScreen.classList.remove("show");
+    crtMonitor.classList.remove("slide-out");
+
     // If REPL hasn't been started yet (direct link to /about), start it now
     if (!repl.active) {
       setTimeout(() => repl.start(), 500);
